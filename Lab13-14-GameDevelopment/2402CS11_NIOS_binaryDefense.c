@@ -1,3 +1,5 @@
+// ANJNEY LAWANIYA - 2402CS11
+// BINARY DEFENSE
 #include <stdbool.h>
 #include <stdlib.h>
 
@@ -159,7 +161,8 @@ void boxNumber(int nx, int ny, int n, short c) {
         boxDigit(nx, ny, r, c);
     }
 }
-
+// ANJNEY LAWANIYA - 2402CS11
+// BINARY DEFENSE
 // Draws the olive drab bomb chassis and its target decimal
 void drawNuke(int x, int oY, int nY, int n) {
     int h = nY - oY + 24;
@@ -330,3 +333,6 @@ int main() {
         }
     }
 }
+
+// ANJNEY LAWANIYA - 2402CS11
+// BINARY DEFENSE

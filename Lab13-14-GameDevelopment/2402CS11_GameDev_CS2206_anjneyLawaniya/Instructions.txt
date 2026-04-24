@@ -1,0 +1,38 @@
+PROJECT TITLE: BINARY DEFENSE
+
+HOW TO PLAY:
+Defend Earth from the falling numeric bombs! Each bomb has a target number. 
+Destroy them before they hit the ground to increase your score. If a single 
+bomb breaches the atmosphere, it's Game Over.
+
+CONTROLS:
+You can play using either the keyboard or the physical board switches. 
+
+1. PS/2 Keyboard (Primary, Fastest): 
+   Just tap the matching number on your keyboard's top row. 
+   (Tap '0' to destroy a '10' bomb).
+
+2. Slide Switches (Secondary, Hardcode binary input): 
+   Use the first four physical slide switches (SW3, SW2, SW1, SW0) as a 4-bit 
+   binary input. Convert the falling bomb's decimal number into binary, set 
+   the switches to that state, and the edge-detection logic will fire the EMP.
+   Example: To destroy a '5' bomb, set the switches to 0101 (SW2 and SW0 UP).
+   Example: To destroy a '10' bomb, set the switches to 1010 (SW3 and SW1 UP).
+
+
+TECHNICAL SPECS:
+This submission includes two distinct versions of the codebase, explicitly 
+tailored for the two different processors available on the DE1-SoC to 
+demonstrate bare-metal architectural differences.
+
+1. ARM Cortex-A9 Version (ARMv7):
+   Utilizes the HPS memory map. VGA pixel and character buffers are mapped 
+   to the 0xC8000000 and 0xC9000000 memory regions. Standard volatile memory 
+   pointers are used for all I/O communication over the Avalon bus.
+
+2. Altera Nios II Soft-Core Version:
+   Utilizes the FPGA soft-core memory map. VGA buffers are mapped to the 
+   0x08000000 and 0x09000000 regions. Due to the Nios II data cache architecture, 
+   the code explicitly bypasses the cache for VGA buffer writes to prevent 
+   I/O cache exceptions, while retaining standard volatile pointers for 
+   the un-cached 0xFF200000 peripheral regions.

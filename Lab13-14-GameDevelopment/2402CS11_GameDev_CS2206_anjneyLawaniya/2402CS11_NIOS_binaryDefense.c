@@ -1,15 +1,13 @@
 // ANJNEY LAWANIYA - 2402CS11
+// BINARY DEFENSE
 #include <stdbool.h>
 #include <stdlib.h>
 
-// VGA pixel buffer control pointer
-volatile int *pC = (int *)0xFF203020;
-// Physical slide switches pointer
-volatile int *sP = (int *)0xFF200040;
-// 7-segment HEX display pointer
-volatile int *h0 = (int *)0xFF200020;
-// PS/2 keyboard data register pointer
-volatile int *kP = (int *)0xFF200100;
+// Hardware macro definitions mapping directly to physical memory addresses
+#define VGA_CTRL ((volatile int *)0xFF203020)
+#define SW_BASE  ((volatile int *)0xFF200040)
+#define HEX_BASE ((volatile int *)0xFF200020)
+#define PS2_BASE ((volatile int *)0xFF200100)
 
 // Hexadecimal bitmasks for 7-segment display digits
 char s7[] = {0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x67};
@@ -45,11 +43,11 @@ int lS = -1;
 int readKey() {
     int w = 0;
     while(1) {
-        int d = *kP;           // keyboard pointer
+        int d = *PS2_BASE;
         if(!(d & 0x8000)) break;
         int c = d & 0xFF;
         if(c == 0xF0) {
-            bK = 1;         // break code
+            bK = 1;
         } else if(bK) {
             bK = 0;
         } else {
@@ -68,10 +66,11 @@ int readKey() {
     return w;
 }
 
-// Writes a 16-bit color to a specific VGA memory offset
+// Writes a 16-bit color to a specific VGA memory offset safely
 void drawPixel(int x, int y, short c) {
     if(x >= 0 && x < 320 && y >= 0 && y < 240) {
-        *(short *)(pB + (y << 10) + (x << 1)) = c;
+        // Casting as volatile short forces architecture-safe hardware I/O writes
+        *(volatile short *)(pB + (y << 10) + (x << 1)) = c;
     }
 }
 
@@ -162,8 +161,9 @@ void boxNumber(int nx, int ny, int n, short c) {
         boxDigit(nx, ny, r, c);
     }
 }
-
-// Draw the olive drab bomb chassis and its target decimal
+// ANJNEY LAWANIYA - 2402CS11
+// BINARY DEFENSE
+// Draws the olive drab bomb chassis and its target decimal
 void drawNuke(int x, int oY, int nY, int n) {
     int h = nY - oY + 24;
     for(int j = 0; j < h; j++) {
@@ -221,12 +221,12 @@ void spawnBomb(int i) {
 
 // Pushes the player's current score to the HEX hardware
 void updateScore() {
-    *h0 = s7[sc % 10] | (s7[(sc / 10) % 10] << 8);
+    *HEX_BASE = s7[sc % 10] | (s7[(sc / 10) % 10] << 8);
 }
 
 // Primary execution loop managing states, inputs, and drawing
 int main() {
-    pB = *pC;
+    pB = *VGA_CTRL;
     drawBackground(0, 0, 320, 180);
     drawEarth();
 
@@ -235,7 +235,7 @@ int main() {
 
     while(1) {
         int kb = readKey();
-        int cS = *sP & 0x0F;
+        int cS = *SW_BASE & 0x0F;
         int sw = 0;
         
         // Edge-trigger the slide switches
@@ -248,8 +248,8 @@ int main() {
             if(!p[i].a) continue;
 
             if(p[i].s == 0) {
-                bool kH = (kb == p[i].n);       // keyboard press
-                bool sH = (sw == p[i].n);       // switch press
+                bool kH = (kb == p[i].n);
+                bool sH = (sw == p[i].n);
                 
                 // Process hit detection and trigger explosion state
                 if(kH || sH) {
@@ -326,8 +326,13 @@ int main() {
                 }
             }
         }
-        // Frame pacing delay
-        for(volatile int d = 0; d < 100000; d++);
+        
+        // Frame pacing delay completely isolated from volatile memory behavior
+        for(int d = 0; d < 100000; d++) {
+            __asm__ volatile ("");
+        }
     }
 }
+
 // ANJNEY LAWANIYA - 2402CS11
+// BINARY DEFENSE
